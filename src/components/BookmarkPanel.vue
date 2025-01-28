@@ -1,4 +1,3 @@
-
 <template>
   <div class="bookmark-panel">
     <div class="bookmark-list" v-if="bookmarks.length > 0">
@@ -11,7 +10,6 @@
       <button class="bookmark-button" @click="playBookmarks" :disabled="isAnimating">▶️</button>
       <button class="bookmark-button" @click="deleteBookmarks" :disabled="isAnimating">🗑️</button>
     </div>
-
   </div>
 </template>
 
@@ -33,14 +31,16 @@ export default {
       const thumbnail = renderer.domElement.toDataURL();
       const position = camera.position.clone();
       const target = cameraControls.getTarget(new THREE.Vector3()).clone();
+      const quaternion = camera.quaternion.clone();
       const zoom = camera.zoom;
 
-      this.bookmarks.push({ thumbnail, position, target, zoom });
+      this.bookmarks.push({ thumbnail, position, target, quaternion, zoom });
     },
     jumpToBookmark(index) {
       const bookmark = this.bookmarks[index];
       camera.position.copy(bookmark.position);
-      cameraControls.setTarget(bookmark.target.x, bookmark.target.y, bookmark.target.z); // cameraControls.target を直接操作せず setTarget を使用
+      cameraControls.setTarget(bookmark.target.x, bookmark.target.y, bookmark.target.z);
+      camera.quaternion.copy(bookmark.quaternion);
       camera.zoom = bookmark.zoom;
       camera.updateProjectionMatrix();
       renderer.render(scene, camera);
@@ -67,21 +67,28 @@ export default {
       const endBookmark = this.bookmarks[index];
       const startTime = performance.now();
 
+      // クォータニオン補間用
+      const startQuaternion = startBookmark.quaternion.clone();
+      const endQuaternion = endBookmark.quaternion.clone();
+
       const animate = () => {
         const currentTime = performance.now();
         const elapsedTime = currentTime - startTime;
         const progress = Math.min(elapsedTime / this.animationDuration, 1);
 
         camera.position.lerpVectors(startBookmark.position, endBookmark.position, progress);
-        cameraControls.setTarget( // cameraControls.target を直接操作せず setTarget を使用
+        cameraControls.setTarget(
           startBookmark.target.x + (endBookmark.target.x - startBookmark.target.x) * progress,
           startBookmark.target.y + (endBookmark.target.y - startBookmark.target.y) * progress,
           startBookmark.target.z + (endBookmark.target.z - startBookmark.target.z) * progress
         );
         camera.zoom = startBookmark.zoom + (endBookmark.zoom - startBookmark.zoom) * progress;
+
+        // クォータニオンを球面線形補間
+        THREE.Quaternion.slerp(startQuaternion, endQuaternion, camera.quaternion, progress); // camera.quaternion に補間結果を代入
+
         camera.updateProjectionMatrix();
         renderer.render(scene, camera);
-
 
         if (progress < 1) {
           requestAnimationFrame(animate);
@@ -109,11 +116,12 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: flex-end; /* ボタンを右寄せ */
+  width: 100%;
 }
 
 .bookmark-buttons {
   display: flex;
-  margin-bottom: 8px; /* ボタンとブックマークリストの間隔 */
+  margin-bottom: 8px;
 }
 
 .bookmark-button {
@@ -134,29 +142,23 @@ export default {
   cursor: default;
 }
 
-
-.bookmark-button img {
-  width: 24px;
-  height: 24px;
-  vertical-align: middle;
-}
-
 .bookmark-list {
   display: flex;
-  flex-direction: row;
+  flex-direction: row-reverse; /* 右から詰める */
+  margin-bottom: 8px;
   overflow-x: auto; /* 水平スクロール */
-  width: 220px; /* ブックマークリストの幅を調整 */
-  padding: 4px 0; /* 上下のパディングを追加 */
+  width: 100%;
+  padding: 4px 0;
+  gap: 8px;
 }
 
 .bookmark-item {
   width: 60px;
   height: 40px;
-  margin-left: 4px;
-  margin-right: 4px;
   border: 1px solid #ccc;
   cursor: pointer;
   overflow: hidden; /* サムネイルがはみ出ないように */
+  flex-shrink: 0; /* アイテムが縮まないように */
 }
 
 .bookmark-thumbnail {
