@@ -34,6 +34,7 @@
   />
   <Menu @modal-set="setModal" ref="dotdotdot" />
   <Share @modal-set="setModal" @preview="setPreview" ref="share" />
+  <bookmark-panel />
   <show-tutorial @modal-set="setModal" :show="showTutorialButton" />
   <!-- <div>
     <a id="ar" rel="ar"><img src="@/assets/icons/AR.png" /></a>
@@ -61,6 +62,8 @@ import { controls, canvas } from "./components/Canvas.vue";
 import Modal from "./components/Modal.vue";
 import VideoExportPreview from "./components/VideoExportPreview.vue";
 import ShowTutorial from "./components/ShowTutorial.vue";
+
+import BookmarkPanel from "./components/BookmarkPanel.vue";
 
 export let renderer = new THREE.WebGLRenderer({
   antialias: true,
@@ -103,6 +106,7 @@ export default {
     Modal,
     VideoExportPreview,
     ShowTutorial,
+    BookmarkPanel,
   },
   data() {
     return {
