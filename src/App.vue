@@ -406,16 +406,15 @@ export default {
     let zoomSpeed = 0.1;
     let zoomFactor = 1;
     if (event.deltaY < 0) {
-      zoomFactor = 1 - zoomSpeed; // ズームイン (値を小さくする)
+      zoomFactor = 1 - zoomSpeed;
     } else {
-      zoomFactor = 1 + zoomSpeed; // ズームアウト (値を大きくする)
+      zoomFactor = 1 + zoomSpeed;
     }
 
     let newZoom = camera.zoom * zoomFactor;
-    newZoom = Math.max(1.5, Math.min(4000, newZoom)); // zoom limits
+    newZoom = Math.max(1.5, Math.min(4000, newZoom));
 
-    cameraControls.zoomTo(newZoom, true); // cameraControls.zoomTo() を使用
-    camera.zoom = newZoom; // camera.zoom も更新 (念のため)
+    cameraControls.zoomTo(newZoom, true);
     camera.updateProjectionMatrix();
     renderer.render(scene, camera);
   }
