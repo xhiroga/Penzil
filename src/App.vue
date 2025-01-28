@@ -164,6 +164,9 @@ export default {
       cameraControls.draggingDampingFactor = 200;
       cameraControls.mouseButtons.left = CameraControls.ACTION.NONE;
       cameraControls.mouseButtons.wheel = CameraControls.ACTION.ROTATE;
+
+      renderer.domElement.addEventListener("wheel", this.onDocumentMouseWheel, false);
+
       document.addEventListener("keydown", (event) => {
         if (event.code === "Space") {
           cameraControls.mouseButtons.left = CameraControls.ACTION.TRUCK;
@@ -397,6 +400,26 @@ export default {
     setPreview: function (val) {
       this.previewing = val;
     },
+    onDocumentMouseWheel: function (event) {
+  event.preventDefault();
+  if (event.ctrlKey) {
+    let zoomSpeed = 0.1;
+    let zoomFactor = 1;
+    if (event.deltaY < 0) {
+      zoomFactor = 1 - zoomSpeed; // ズームイン (値を小さくする)
+    } else {
+      zoomFactor = 1 + zoomSpeed; // ズームアウト (値を大きくする)
+    }
+
+    let newZoom = camera.zoom * zoomFactor;
+    newZoom = Math.max(1.5, Math.min(4000, newZoom)); // zoom limits
+
+    cameraControls.zoomTo(newZoom, true); // cameraControls.zoomTo() を使用
+    camera.zoom = newZoom; // camera.zoom も更新 (念のため)
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+  }
+},
   },
   mounted() {
     this.init();
