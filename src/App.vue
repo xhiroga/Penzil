@@ -405,7 +405,7 @@ export default {
   if (event.ctrlKey) {
     let zoomSpeed = 0.1;
     let zoomFactor = 1;
-    if (event.deltaY < 0) {
+    if (event.deltaY > 0) {
       zoomFactor = 1 - zoomSpeed;
     } else {
       zoomFactor = 1 + zoomSpeed;
